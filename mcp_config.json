@@ -1,0 +1,16 @@
+{
+    "mcpServers": {
+        "omnicore-trends": {
+            "command": "python3",
+            "args": [
+                "/Users/Zhuanz/Desktop/001/mcp_server.py"
+            ]
+        },
+        "omnicore-service": {
+            "command": "python3",
+            "args": [
+                "/Users/Zhuanz/Desktop/001/ecommerce_service.py"
+            ]
+        }
+    }
+}

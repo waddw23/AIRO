@@ -2,5 +2,7 @@ __pycache__/
 *.pyc
 *.pyo
 .DS_Store
+.env
 crawl_system/
 crawl_system/data/
+deploy/*.zip

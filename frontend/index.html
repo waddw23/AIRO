@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>AIRON E-Commerce AI Keynote</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="bg-canvas">
+      <div class="orb orb-a"></div>
+      <div class="orb orb-b"></div>
+      <div class="noise"></div>
+    </div>
+
+    <main class="phone" id="phoneApp">
+      <header class="hero glass reveal">
+        <div class="hero-meta">
+          <span class="chip">AIRON Commerce Intelligence</span>
+          <button class="demo-btn" id="demoBtn">发布会演示</button>
+        </div>
+        <h1>企业电商增长中枢</h1>
+        <p>像淘宝一样真实运营，像千问一样深度解答。</p>
+        <div class="kpi-row" id="kpiRow"></div>
+      </header>
+
+      <section class="view active" data-view="home">
+        <article class="panel glass reveal">
+          <div class="panel-head">
+            <h2>实时经营驾驶舱</h2>
+            <span class="tag green">Live</span>
+          </div>
+          <div class="metric-grid">
+            <div class="metric">
+              <small>今日GMV预测</small>
+              <strong id="gmv">¥ 2,860,000</strong>
+              <em>+11.4%</em>
+            </div>
+            <div class="metric">
+              <small>AI转化贡献</small>
+              <strong id="aicvr">34.9%</strong>
+              <em>+3.2pt</em>
+            </div>
+            <div class="metric">
+              <small>广告ROI</small>
+              <strong id="roi">3.81</strong>
+              <em>+0.4</em>
+            </div>
+            <div class="metric">
+              <small>客服一次解决率</small>
+              <strong id="fcr">89.3%</strong>
+              <em>+6.1pt</em>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel glass reveal">
+          <div class="panel-head">
+            <h2>全渠道热度</h2>
+            <span class="tag">Omni</span>
+          </div>
+          <div id="channelBars" class="bars"></div>
+        </article>
+      </section>
+
+      <section class="view" data-view="copilot">
+        <article class="panel glass reveal chat-panel">
+          <div class="panel-head">
+            <h2>运营 AI Copilot</h2>
+            <span class="tag">Coze</span>
+          </div>
+
+          <div class="prompt-box" id="promptBox">
+            <span class="cursor-dot"></span>
+            <p id="promptText">请基于近7日数据，给出“618预热”分阶段投放策略。</p>
+          </div>
+
+          <div class="chat" id="chatWindow">
+            <div class="bubble ai">我已就绪。你可以直接问增长、定价、投放或客服质检。</div>
+          </div>
+
+          <form id="chatForm" class="input-row">
+            <input id="chatInput" placeholder="输入你的业务问题" required />
+            <button type="submit">发送</button>
+          </form>
+        </article>
+      </section>
+
+      <section class="view" data-view="goods">
+        <article class="panel glass reveal">
+          <div class="panel-head">
+            <h2>商品机会地图</h2>
+            <span class="tag amber">SKU</span>
+          </div>
+          <div class="sku-list" id="skuList"></div>
+        </article>
+        <article class="panel glass reveal">
+          <div class="panel-head">
+            <h2>消费者声音洞察</h2>
+            <span class="tag">NLP</span>
+          </div>
+          <ul class="insight-list">
+            <li><strong>物流体验：</strong>华南仓波峰期存在时效抖动，建议增加晚间波次。</li>
+            <li><strong>产品评价：</strong>功能满意度 91%，可强化“静音+节能”卖点。</li>
+            <li><strong>售后咨询：</strong>集中在保修规则，建议引导至可视化政策卡片。</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="view" data-view="service">
+        <article class="panel glass reveal">
+          <div class="panel-head">
+            <h2>智能客服中台</h2>
+            <span class="tag red">SLA</span>
+          </div>
+          <ul class="ticket-list">
+            <li><span>#CS-98112</span><span>退款异常升级</span><b>高优</b></li>
+            <li><span>#CS-98113</span><span>延迟发货补偿</span><b>中优</b></li>
+            <li><span>#CS-98114</span><span>商品参数咨询</span><b>低优</b></li>
+          </ul>
+          <div class="qa-box">
+            AI 质检结论：最近 24 小时对话合规率 98.1%，建议补充“超时赔付”标准话术。
+          </div>
+        </article>
+      </section>
+
+      <section class="view" data-view="settings">
+        <article class="panel glass reveal">
+          <div class="panel-head">
+            <h2>连接配置</h2>
+            <span class="tag">Secure</span>
+          </div>
+          <label>Bot ID<input id="botIdInput" placeholder="AIRON Bot ID" /></label>
+          <label>API Base URL<input id="baseUrlInput" value="https://api.coze.cn" /></label>
+          <label>API Key<input id="apiKeyInput" type="password" placeholder="Coze PAT" /></label>
+          <div class="config-row">
+            <button id="saveConfigBtn">保存连接</button>
+            <span id="configState">未连接</span>
+          </div>
+          <small>仅保存在当前会话。正式发布请改为后端代理与权限审计。</small>
+        </article>
+      </section>
+
+      <nav class="tabbar glass" id="tabbar">
+        <button class="tab active" data-view="home">总览</button>
+        <button class="tab" data-view="copilot">AI策略</button>
+        <button class="tab" data-view="goods">商品洞察</button>
+        <button class="tab" data-view="service">客服</button>
+        <button class="tab" data-view="settings">设置</button>
+      </nav>
+    </main>
+
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>
