@@ -6,3 +6,5 @@ __pycache__/
 crawl_system/
 crawl_system/data/
 deploy/*.zip
+frontend/node_modules/
+frontend/demo-output/
