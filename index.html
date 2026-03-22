@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AIRON Enterprise Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="dot"></div>
+          <div>
+            <h1>AIRON</h1>
+            <p>Enterprise Commerce AI</p>
+          </div>
+        </div>
+
+        <nav>
+          <button class="nav active" data-view="workspace">工作台</button>
+          <button class="nav" data-view="connectors">数据接入</button>
+          <button class="nav" data-view="analytics">实时分析</button>
+          <button class="nav" data-view="copilot">AI Copilot</button>
+        </nav>
+
+        <div class="side-note">
+          <p>Enterprise v3 Showcase</p>
+          <small>Ctrl/Cmd + K 快速聚焦提问框</small>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar reveal">
+          <div>
+            <h2 id="title">企业级电商 AI 工作台</h2>
+            <p id="subtitle">统一接入商家后台数据，进行实时分析与智能决策。</p>
+          </div>
+
+          <div class="top-actions">
+            <label class="api-inline">
+              API
+              <input id="apiBaseInput" placeholder="https://your-api-domain.com" />
+            </label>
+            <span id="apiHealth" class="health waiting">Checking</span>
+            <button id="applyApiBase" class="btn ghost">应用</button>
+            <button id="demoPulse" class="btn primary">实时刷新</button>
+          </div>
+        </header>
+
+        <section class="hero-band reveal">
+          <article class="hero-card">
+            <span>今日智能决策执行</span>
+            <strong id="decisionCount">--</strong>
+          </article>
+          <article class="hero-card">
+            <span>接入健康度</span>
+            <strong id="healthScore">--</strong>
+          </article>
+          <article class="hero-card">
+            <span>AIRON 响应等级</span>
+            <strong id="responseGrade">A+</strong>
+          </article>
+        </section>
+
+        <section class="view active" data-view="workspace">
+          <div class="kpis reveal stagger">
+            <article class="card kpi"><span>GMV 实时预测</span><strong id="gmv">¥ 0</strong></article>
+            <article class="card kpi"><span>AI 转化贡献</span><strong id="aicvr">0%</strong></article>
+            <article class="card kpi"><span>客服一次解决率</span><strong id="fcr">0%</strong></article>
+            <article class="card kpi"><span>异常订单预警</span><strong id="risk">0</strong></article>
+          </div>
+
+          <div class="grid-two reveal stagger">
+            <article class="card">
+              <div class="card-head">
+                <h3>商家接入状态</h3>
+                <span id="connectorRatio" class="tag">0% 在线</span>
+              </div>
+              <ul class="status-list" id="statusList"></ul>
+            </article>
+            <article class="card">
+              <div class="card-head">
+                <h3>AIRON 推荐动作</h3>
+                <button id="exportReport" class="btn mini">导出日报</button>
+              </div>
+              <ul class="action-list" id="aironActions">
+                <li>等待 AIRON 生成建议...</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" data-view="connectors">
+          <article class="card reveal">
+            <div class="card-head">
+              <h3>商家后端数据接入</h3>
+              <input id="connectorSearch" class="search" placeholder="筛选：平台名 / endpoint" />
+            </div>
+            <p class="muted">支持 ERP / OMS / CRM / 广告平台 API，支持连接器健康测试。</p>
+
+            <form id="connectorForm" class="connector-form">
+              <label>平台类型
+                <select id="type">
+                  <option>淘宝/天猫</option>
+                  <option>京东</option>
+                  <option>抖音电商</option>
+                  <option>自建 ERP/OMS</option>
+                </select>
+              </label>
+              <label>API Endpoint
+                <input id="endpoint" placeholder="https://merchant-api.example.com/v1/orders" required />
+              </label>
+              <label>授权方式
+                <select id="authType">
+                  <option>Bearer Token</option>
+                  <option>AppKey + Secret</option>
+                  <option>OAuth2</option>
+                </select>
+              </label>
+              <button type="submit" class="btn primary">新增接入端口</button>
+            </form>
+
+            <table>
+              <thead><tr><th>平台</th><th>Endpoint</th><th>状态</th><th>操作</th></tr></thead>
+              <tbody id="connectorRows"></tbody>
+            </table>
+          </article>
+        </section>
+
+        <section class="view" data-view="analytics">
+          <div class="grid-two reveal stagger">
+            <article class="card">
+              <div class="card-head"><h3>实时分析</h3><span class="tag">Live</span></div>
+              <div class="bars" id="bars"></div>
+            </article>
+            <article class="card">
+              <div class="card-head"><h3>事件流</h3><button id="clearView" class="btn mini">清空视图</button></div>
+              <ul class="event-list" id="events"></ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" data-view="copilot">
+          <article class="card chat-card reveal">
+            <div class="card-head">
+              <h3>AIRON Copilot</h3>
+              <span class="tag">Coze Live</span>
+            </div>
+            <p class="muted">支持结构化策略输出，自动渲染为可执行卡片。</p>
+
+            <div class="prompt-suggestions" id="promptSuggestions">
+              <button class="suggest">给我一份618预热期投放方案</button>
+              <button class="suggest">分析最近客服SLA异常原因</button>
+              <button class="suggest">给出库存风险和补货建议</button>
+            </div>
+
+            <div class="chat" id="chat">
+              <div class="bubble ai">你好，我是 AIRON。请告诉我你要优化的业务目标。</div>
+            </div>
+
+            <div id="strategyCards" class="strategy-cards"></div>
+
+            <form id="chatForm" class="chat-form">
+              <input id="chatInput" placeholder="例如：如何提升618预热期 ROI？" required />
+              <button type="submit" class="btn primary">发送</button>
+            </form>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
