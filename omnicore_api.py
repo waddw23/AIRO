@@ -121,32 +121,40 @@ def safe_json_load(raw: str) -> Any:
 
 
 def coze_extract_answer(payload: Dict[str, Any]) -> Optional[str]:
-    # Compatibility parsing for possible Coze response variants
-    data = payload.get("data") if isinstance(payload, dict) else None
+    """
+    尽可能从 Coze 返回中提取可读文本。
+    优先级：data.messages.answer -> data.messages.any -> data.content -> messages.answer -> messages.any -> msg。
+    """
+    if not isinstance(payload, dict):
+        return None
+
+    def first_text(items):
+        for it in items:
+            if isinstance(it, dict):
+                if it.get("type") == "answer" and it.get("content"):
+                    return it.get("content")
+                if isinstance(it.get("content"), str):
+                    return it.get("content")
+        return None
+
+    data = payload.get("data")
     if isinstance(data, dict):
-        messages = data.get("messages")
-        if isinstance(messages, list):
-            for item in messages:
-                # Prefer answer
-                if item.get("type") == "answer" and item.get("content"):
-                    return item.get("content")
-                # Fallback: any text content
-                if isinstance(item.get("content"), str):
-                    return item.get("content")
+        msgs = data.get("messages")
+        if isinstance(msgs, list):
+            text = first_text(msgs)
+            if text:
+                return text
         if isinstance(data.get("content"), str):
             return data.get("content")
 
-    messages = payload.get("messages") if isinstance(payload, dict) else None
-    if isinstance(messages, list):
-        for item in messages:
-            if item.get("type") == "answer" and item.get("content"):
-                return item.get("content")
-            if isinstance(item.get("content"), str):
-                return item.get("content")
+    msgs = payload.get("messages")
+    if isinstance(msgs, list):
+        text = first_text(msgs)
+        if text:
+            return text
 
     if isinstance(payload.get("msg"), str):
         return payload.get("msg")
-
     return None
 
 
