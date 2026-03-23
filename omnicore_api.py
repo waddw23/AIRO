@@ -251,6 +251,17 @@ def read_root():
     return {"message": "OmniCore AI API is running", "version": "2.0.0"}
 
 
+@app.get("/api/debug/env", summary="仅用于排查部署环境变量")
+def debug_env():
+    # 不返回密钥本身，只返回是否存在
+    return {
+        "has_COZE_API_KEY": bool(os.getenv("COZE_API_KEY")),
+        "COZE_BOT_ID": os.getenv("COZE_BOT_ID"),
+        "COZE_USER_ID": os.getenv("COZE_USER_ID"),
+        "COZE_API_BASE": os.getenv("COZE_API_BASE"),
+    }
+
+
 @app.post("/api/track-order", summary="查询订单物流状态")
 def api_track_order(req: OrderRequest):
     result = track_order(req.order_id)
