@@ -127,7 +127,11 @@ def coze_extract_answer(payload: Dict[str, Any]) -> Optional[str]:
         messages = data.get("messages")
         if isinstance(messages, list):
             for item in messages:
+                # Prefer answer
                 if item.get("type") == "answer" and item.get("content"):
+                    return item.get("content")
+                # Fallback: any text content
+                if isinstance(item.get("content"), str):
                     return item.get("content")
         if isinstance(data.get("content"), str):
             return data.get("content")
@@ -136,6 +140,8 @@ def coze_extract_answer(payload: Dict[str, Any]) -> Optional[str]:
     if isinstance(messages, list):
         for item in messages:
             if item.get("type") == "answer" and item.get("content"):
+                return item.get("content")
+            if isinstance(item.get("content"), str):
                 return item.get("content")
 
     if isinstance(payload.get("msg"), str):
