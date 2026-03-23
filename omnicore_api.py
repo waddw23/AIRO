@@ -217,7 +217,20 @@ def coze_chat(message: str, user_id: str) -> str:
                                         answer_parts.append(seg["text"])
             if answer_parts:
                 return "".join(answer_parts)
-            raise HTTPException(status_code=502, detail="Coze 返回为空，未获取到任何内容。")
+            # 尝试从最终块里取日志等信息
+            try:
+                fallback_raw = data_obj  # 最后一次 data_obj
+                logid = (
+                    fallback_raw.get("detail", {}).get("logid")
+                    if isinstance(fallback_raw, dict)
+                    else None
+                )
+            except Exception:
+                logid = None
+            msg = "Coze 返回为空，未获取到文本"
+            if logid:
+                msg += f"（logid: {logid}）"
+            return msg
     except urlerror.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="ignore") if exc.fp else str(exc)
         raise HTTPException(status_code=502, detail=f"Coze HTTPError: {detail}")
