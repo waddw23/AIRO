@@ -266,12 +266,12 @@ def coze_chat(message: str, user_id: str) -> str:
                 if isinstance(item.get("content"), str):
                     return item.get("content")
 
-        # Fallback: return raw payload for transparency
+        # Fallback: 将原始载荷直接返回给前端
         try:
-            raw = json.dumps(msg_payload or created or {}, ensure_ascii=False)[:800]
+            raw = json.dumps(msg_payload or created or {}, ensure_ascii=False)
         except Exception:
-            raw = str(msg_payload or created or {})[:800]
-        raise HTTPException(status_code=502, detail=f"Coze 无有效 answer: {raw}")
+            raw = str(msg_payload or created or {})
+        return raw
     except urlerror.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="ignore") if exc.fp else str(exc)
         raise HTTPException(status_code=502, detail=f"Coze HTTPError: {detail}")
