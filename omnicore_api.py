@@ -191,10 +191,20 @@ def coze_chat(message: str, user_id: str) -> str:
         },
     )
 
+    def raise_raw(raw_obj):
+        try:
+            raw = json.dumps(raw_obj or {}, ensure_ascii=False)[:800]
+        except Exception:
+            raw = str(raw_obj)[:800]
+        raise HTTPException(status_code=502, detail=f"Coze 无有效返回: {raw}")
+
     try:
         with urlrequest.urlopen(req, timeout=20) as resp:
             body = resp.read().decode("utf-8", errors="ignore")
             created = safe_json_load(body) or {}
+
+        if created.get("code") not in (0, None):
+            raise_raw(created)
 
         # Some Coze bots return async status first (in_progress).
         data = created.get("data") if isinstance(created, dict) else {}
@@ -208,7 +218,7 @@ def coze_chat(message: str, user_id: str) -> str:
             return answer
 
         if not chat_id or not conversation_id:
-            return "AIRON 已收到请求，但缺少 chat/conversation 标识，无法继续轮询。"
+            raise_raw(created)
 
         # Poll chat status until completed.
         for _ in range(15):
@@ -255,7 +265,7 @@ def coze_chat(message: str, user_id: str) -> str:
             raw = json.dumps(msg_payload or created or {}, ensure_ascii=False)[:800]
         except Exception:
             raw = str(msg_payload or created or {})[:800]
-        return f"AIRON 已完成处理，但未解析到 answer。原始输出: {raw}"
+        raise HTTPException(status_code=502, detail=f"Coze 无有效 answer: {raw}")
     except urlerror.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="ignore") if exc.fp else str(exc)
         raise HTTPException(status_code=502, detail=f"Coze HTTPError: {detail}")
