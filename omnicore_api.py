@@ -170,19 +170,13 @@ def coze_chat(message: str, user_id: str) -> str:
 
     payload = {
         "bot_id": bot_id,
-        "user_id": user_id,
-        "stream": False,
-        "additional_messages": [
-            {
-                "role": "user",
-                "content": message,
-                "content_type": "text",
-            }
-        ],
+        "user": user_id,
+        "query": message,
+        "stream": True,
     }
 
     req = urlrequest.Request(
-        url=f"{base_url}/v3/chat",
+        url=f"{base_url}/v1/chat",
         data=json.dumps(payload).encode("utf-8"),
         method="POST",
         headers={
@@ -191,87 +185,39 @@ def coze_chat(message: str, user_id: str) -> str:
         },
     )
 
-    def raise_raw(raw_obj):
-        try:
-            raw = json.dumps(raw_obj or {}, ensure_ascii=False)[:800]
-        except Exception:
-            raw = str(raw_obj)[:800]
-        raise HTTPException(status_code=502, detail=f"Coze 无有效返回: {raw}")
-
     try:
-        with urlrequest.urlopen(req, timeout=20) as resp:
-            body = resp.read().decode("utf-8", errors="ignore")
-            created = safe_json_load(body) or {}
-
-        if created.get("code") not in (0, None):
-            raise_raw(created)
-
-        # Some Coze bots return async status first (in_progress).
-        data = created.get("data") if isinstance(created, dict) else {}
-        chat_id = data.get("id")
-        conversation_id = data.get("conversation_id")
-        status = data.get("status")
-
-        # Direct answer path (if present in create response).
-        answer = coze_extract_answer(created)
-        if answer:
-            return answer
-
-        if not chat_id or not conversation_id:
-            raise_raw(created)
-
-        # Poll chat status until completed.
-        for _ in range(15):
-            if status in ("completed", "failed", "requires_action", "canceled"):
-                break
-            poll_query = urlparse.urlencode(
-                {"conversation_id": conversation_id, "chat_id": chat_id}
-            )
-            poll_req = urlrequest.Request(
-                url=f"{base_url}/v3/chat/retrieve?{poll_query}",
-                headers={"Authorization": f"Bearer {api_key}"},
-                method="GET",
-            )
-            with urlrequest.urlopen(poll_req, timeout=20) as poll_resp:
-                poll_body = poll_resp.read().decode("utf-8", errors="ignore")
-                polled = safe_json_load(poll_body) or {}
-                pdata = polled.get("data") if isinstance(polled, dict) else {}
-                status = (pdata.get("status")) or status
-                # 如果创建时缺少 id，尝试从轮询结果补全
-                if not chat_id:
-                    chat_id = pdata.get("id")
-                if not conversation_id:
-                    conversation_id = pdata.get("conversation_id")
-            if status == "completed":
-                break
-
-        # Fetch message list and extract assistant answer.
-        msg_query = urlparse.urlencode(
-            {"conversation_id": conversation_id, "chat_id": chat_id}
-        )
-        msg_req = urlrequest.Request(
-            url=f"{base_url}/v3/chat/message/list?{msg_query}",
-            headers={"Authorization": f"Bearer {api_key}"},
-            method="GET",
-        )
-        with urlrequest.urlopen(msg_req, timeout=20) as msg_resp:
-            msg_body = msg_resp.read().decode("utf-8", errors="ignore")
-            msg_payload = safe_json_load(msg_body) or {}
-
-        messages = msg_payload.get("data") if isinstance(msg_payload, dict) else []
-        if isinstance(messages, list):
-            for item in messages:
-                if item.get("type") == "answer" and item.get("content"):
-                    return item.get("content")
-                if isinstance(item.get("content"), str):
-                    return item.get("content")
-
-        # Fallback: 将原始载荷直接返回给前端
-        try:
-            raw = json.dumps(msg_payload or created or {}, ensure_ascii=False)
-        except Exception:
-            raw = str(msg_payload or created or {})
-        return raw
+        with urlrequest.urlopen(req, timeout=60) as resp:
+            # SSE 流式响应
+            answer_parts = []
+            for raw_line in resp:
+                line = raw_line.decode("utf-8", errors="ignore").strip()
+                if not line:
+                    continue
+                if line.startswith("data:"):
+                    data_str = line.replace("data:", "", 1).strip()
+                    # 跳过 keepalive 或非 JSON
+                    if not data_str or data_str == "[DONE]":
+                        continue
+                    data_obj = safe_json_load(data_str)
+                    if isinstance(data_obj, dict):
+                        # v1 流式 delta
+                        content = data_obj.get("content")
+                        if isinstance(content, str):
+                            answer_parts.append(content)
+                        # conversation.message.completed 场景
+                        msg = data_obj.get("message")
+                        if isinstance(msg, dict):
+                            if isinstance(msg.get("content"), str):
+                                answer_parts.append(msg["content"])
+                            if isinstance(msg.get("content"), list):
+                                for seg in msg["content"]:
+                                    if isinstance(seg, str):
+                                        answer_parts.append(seg)
+                                    elif isinstance(seg, dict) and isinstance(seg.get("text"), str):
+                                        answer_parts.append(seg["text"])
+            if answer_parts:
+                return "".join(answer_parts)
+            raise HTTPException(status_code=502, detail="Coze 返回为空，未获取到任何内容。")
     except urlerror.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="ignore") if exc.fp else str(exc)
         raise HTTPException(status_code=502, detail=f"Coze HTTPError: {detail}")
