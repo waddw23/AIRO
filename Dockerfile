@@ -11,5 +11,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 复制项目代码
 COPY . .
 
-# 启动命令：优先使用平台注入的 PORT，默认为 8000
-CMD ["sh", "-c", "uvicorn omnicore_api:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# HuggingFace Spaces（Docker）不会自动注入 PORT，这里固定 7860 并兼容外部注入
+ENV PORT=7860
+EXPOSE 7860
+
+CMD ["sh", "-c", "uvicorn omnicore_api:app --host 0.0.0.0 --port ${PORT:-7860}"]
