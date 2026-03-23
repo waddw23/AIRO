@@ -27,23 +27,24 @@ jobs:
           # pin to a recent version to avoid missing symbols
           pip install "huggingface_hub>=0.23.4"
 
-      - name: Deploy to Spaces (bind to your HF account)
+      - name: Deploy to Spaces (auto use token owner)
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          SPACE_REPO: 15391564191aa/airon-backend
+          SPACE_NAME: airon-backend
         run: |
           python - <<'PY'
           import os, sys
           from huggingface_hub import HfApi
 
           token = os.getenv("HF_TOKEN")
-          repo_id = os.getenv("SPACE_REPO")
+          space_name = os.getenv("SPACE_NAME", "airon-backend")
           if not token:
               sys.exit("HF_TOKEN secret is missing. Set it in GitHub Settings → Secrets and re-run.")
-          if not repo_id:
-              sys.exit("SPACE_REPO env missing.")
 
           api = HfApi(token=token)
+          user = api.whoami()["name"]
+          repo_id = f"{user}/{space_name}"
+
           api.create_repo(
               repo_id=repo_id,
               repo_type="space",
