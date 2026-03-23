@@ -235,7 +235,13 @@ def coze_chat(message: str, user_id: str) -> str:
             with urlrequest.urlopen(poll_req, timeout=20) as poll_resp:
                 poll_body = poll_resp.read().decode("utf-8", errors="ignore")
                 polled = safe_json_load(poll_body) or {}
-                status = ((polled.get("data") or {}).get("status")) or status
+                pdata = polled.get("data") if isinstance(polled, dict) else {}
+                status = (pdata.get("status")) or status
+                # 如果创建时缺少 id，尝试从轮询结果补全
+                if not chat_id:
+                    chat_id = pdata.get("id")
+                if not conversation_id:
+                    conversation_id = pdata.get("conversation_id")
             if status == "completed":
                 break
 
