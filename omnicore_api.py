@@ -248,20 +248,34 @@ def coze_chat(message: str, user_id: str) -> str:
             msg_payload = safe_json_load(msg_body) or {}
 
         messages = msg_payload.get("data") if isinstance(msg_payload, dict) else []
+
+        def is_noise(text: str) -> bool:
+            t = text.strip()
+            if not t:
+                return True
+            if t.startswith("{") and '"msg_type"' in t:
+                return True
+            if t.startswith("{") and '"method"' in t:
+                return True
+            return False
+
         texts = []
         if isinstance(messages, list):
             for item in messages:
                 content = item.get("content")
                 if isinstance(content, str):
-                    texts.append(content)
+                    if not is_noise(content):
+                        texts.append(content)
                 elif isinstance(content, list):
                     for seg in content:
-                        if isinstance(seg, str):
+                        if isinstance(seg, str) and not is_noise(seg):
                             texts.append(seg)
                         elif isinstance(seg, dict) and isinstance(seg.get("text"), str):
-                            texts.append(seg["text"])
+                            if not is_noise(seg["text"]):
+                                texts.append(seg["text"])
+
         if texts:
-            return "".join(texts)
+            return "\n".join(texts)
 
         # Fallback: 返回原始载荷
         try:
