@@ -242,14 +242,20 @@ def coze_chat(message: str, user_id: str) -> str:
             msg_body = msg_resp.read().decode("utf-8", errors="ignore")
             msg_payload = safe_json_load(msg_body) or {}
 
-        messages = msg_payload.get("data") if isinstance(msg_payload, dict) else []
-        if isinstance(messages, list):
-            for item in messages:
-                if item.get("type") == "answer" and item.get("content"):
-                    return item.get("content")
+    messages = msg_payload.get("data") if isinstance(msg_payload, dict) else []
+    if isinstance(messages, list):
+        for item in messages:
+            if item.get("type") == "answer" and item.get("content"):
+                return item.get("content")
+            if isinstance(item.get("content"), str):
+                return item.get("content")
 
-        # Fallback if completed but no answer message parsed.
-        return "AIRON 已完成处理，但未解析到 answer 消息，请检查智能体输出。"
+    # Fallback：返回原始载荷，便于前端查看。
+    try:
+        fallback = json.dumps(msg_payload or created or {}, ensure_ascii=False)
+    except Exception:
+        fallback = str(msg_payload or created or {})
+    return f"AIRON 已完成处理，但未解析到 answer。原始输出：{fallback}"
     except urlerror.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="ignore") if exc.fp else str(exc)
         raise HTTPException(status_code=502, detail=f"Coze HTTPError: {detail}")
