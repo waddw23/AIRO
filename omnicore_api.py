@@ -277,12 +277,22 @@ def coze_chat(message: str, user_id: str) -> str:
         if texts:
             return "\n".join(texts)
 
-        # Fallback: 返回原始载荷
+        # Fallback: 返回原始载荷，附带 logid 提示
+        logid = None
+        for obj in (msg_payload, created):
+            if isinstance(obj, dict):
+                detail = obj.get("detail")
+                if isinstance(detail, dict) and detail.get("logid"):
+                    logid = detail.get("logid")
+                    break
         try:
             raw = json.dumps(msg_payload or created or {}, ensure_ascii=False)[:800]
         except Exception:
             raw = str(msg_payload or created or {})[:800]
-        return f"Coze 未返回文本，原始输出: {raw}"
+        prefix = "Coze 未返回文本"
+        if logid:
+            prefix += f"（logid: {logid}）"
+        return f"{prefix}，原始输出: {raw}"
     except urlerror.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="ignore") if exc.fp else str(exc)
         raise HTTPException(status_code=502, detail=f"Coze HTTPError: {detail}")
